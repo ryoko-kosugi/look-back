@@ -1,0 +1,23 @@
+
+
+/*div要素全体にリンクをつけるために必要な要素*/
+.linkbox {
+    position: relative;
+}
+.linkbox a {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height:100%;
+    width: 100%;
+}
+
+/* 以下見た目をわかりやすくするための設定*/
+.linkbox {
+    border: solid 2px #00ffff;
+}
+.linkbox a:hover{/* マウスオーバー時に色変更*/
+    opacity: 0.1;
+    background-color: #fffff0;
+}
+
