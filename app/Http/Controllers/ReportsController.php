@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Report;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportsController extends Controller
 {
@@ -14,35 +15,55 @@ class ReportsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
       if (\Auth::check()) {
-           $user = \Auth::user();
+         
+           $user = \Auth::user();//ログインユーザの取得
+           
+           $this_monday = Carbon::now()->startOfWeek();//今週月曜日を取得
        
-           $this_monday = date('Y-m-d',strtotime('Monday this week')); //今週の月曜日
-           $next_sunday = date('Y-m-d',strtotime('Sunday')); //日曜日
+           $n = null;//日付リクエストされた時の「$n」が空になるエラーを防ぐ
+         
+           //パラメータ切り分けテスト
+           //pageリクエスト（ページ送りから）を取得し、かつ、その値が整数値であることを確認できたなら
+           if($request->get('page') && is_int($request->get('page'))) {
+             
+               $page = $request->get('page');//リクエストされたページ数を取得
+               $n = $page;  //ページ数を格納
+
+               $from = $this_monday->subWeeks($n - 1);//ページ毎の月曜日
+               $to = $from->copy()->addDay(6);//それに合わせた各日曜日
+               
+           //dateリクエスト（日付リストから）を受けて、かつ、日付を取得できたなら
+           }elseif($request->get('date') && strtotime($request->get('date'))){
+               
+               $request_date = $request->get('date');//リクエストされた日付を取得"2020-01-06"
+               
+               $from = new Carbon($request_date);// date: 2020-01-06 00:00:00.0 Asia/Tokyo (+09:00)
+               $to = $from->copy()->addDay(6);//date: 2020-01-12 00:00:00.0 Asia/Tokyo (+09:00)
+             
+           //pageリクエストでもdateリクエストでも無い場合 ( 「/reports」の時に「1」を取得する )        
+           }else{
+              $page = $request->get('page', 1);// 「/reports」の時に「1」を取得する
+              $n = $page;  //ページ数を格納
+
+              $from = $this_monday->subWeeks($n - 1);//先週の月曜日 
+              $to = $from->copy()->addDay(6);//先週の日曜日   
+          }
           
-           $lastweek = date('Y-m-d', strtotime('-1 week')); //今日から１週間前の日にち
-           $last_monday = date('Y-m-d', strtotime('last Monday')); //今週の月曜日
-           $today = date('Y-m-d'); //今日
-           
-           $reports = $user->reports()->where('date', '>=', $this_monday)
-                                      ->where('date', '<=', $next_sunday)
-                                      ->get();
-           
-           $sum = $reports->sum('time'); //時間の集計
-        //   $reports = Report::paginate(10);
-        
-           return view('reports.index', [
+            $reports = $user->reports()->where('date', '>=', $from)
+                                       ->where('date', '<=', $to)->orderBy('date')
+                                       ->get();
+                           
+            $sum = $reports->sum('time'); //時間の集計
+      
+            return view('reports.index', [
                 'reports' => $reports,
-                'today' => $today,
-                'last_monday' => $last_monday,
                 'sum' => $sum,
-                'this_monday' => $this_monday,
-                'next_sunday' => $next_sunday,
-           ]);
-      }
-       
+                'n' => $n,
+            ]);
+       }
        return view('/');
     }
 
@@ -55,22 +76,7 @@ class ReportsController extends Controller
     {
         
         $report = new Report;
-        // 新規作成画面を表示する
-        
-        // ただし日付重複する場合は新規ではなくて編集画面を表示する。
-        // そのための事前準備として、インスタンスを用意してそれをViewに渡します。
-        // 日付の取得
-        // $date = new Carbon($request->date);
-        // DBにこの組み合わせデータが存在する場合は取得し
-        // $report = Report::firstOrNew([
-        //     'user_id' => \Auth::id(),
-        //     'date' => $date,
-        // ], [
-        //     'date'   => $date,
-        // ]);
-        // 存在しない場合はインスタンスを取得する。
-        // 但し、データは保存しない(store()で保存する)
-        
+ 
         return view('reports.create', [
             'report' => $report,    
         ]);
@@ -111,6 +117,7 @@ class ReportsController extends Controller
      */
     public function show($id)
     {
+        
         $report = Report::find($id);
         
         if (\Auth::id() === $report->user_id) {
@@ -189,43 +196,60 @@ class ReportsController extends Controller
         return redirect('/');
     }
  
-    
-    public function every_week()
+    // １０週間毎の表示ページ
+    public function every_week(Request $request)
     {
-       
+        
         if (\Auth::check()) {
-            $user = \Auth::user();
+            $user = \Auth::user(); //ログインユーザの取得
             
             $reports = $user->reports()->orderBy('date', 'desc')->paginate(10); //全report取得(日付降順)
             
-                // 今週の月曜を基準に考える
-            $targetTime = strtotime('last Monday');  
-              
-            $weeks = [];            
+            // ページ取得
+           //is_numericで数値であることを判定。intvalで整数値に変換。true->ページ数を取得。false->「1」を取得。
+            $page = is_numeric($request->get('page')) ? intval($request->get('page')): 1;
+            $n = $page; //ページ数を格納
+        
+            $last_monday = Carbon::now()->startOfWeek()->subWeeks(1);//先週の月曜  date: 2020-01-27 00:00:00.0 Asia/Tokyo (+09:00)
+           
+            //ページの切り分けを行う
+            if($n > 1){
+                $from = $last_monday->copy()->subWeeks(($n - 1) * 10);
+                $to = $from->copy()->addDay(6);
             
-            for($i = -1;$i >= -10;$i--) {
-                $date = date('Y-m-d', strtotime($i .' week', $targetTime));//"2019-12-16"
-                $monday = date('Y-m-d', strtotime($i .' week', $targetTime)); 
-                $sunday = date('Y-m-d', strtotime('+6 day', strtotime($monday)));
+            }else{
+                $from = $last_monday->copy();//page=1 先週の月曜日
+                $to = $from->copy()->addDay(6);
+            }
+            
+            $baseFrom = $from->copy();//ページの最初の月曜
+         
+            $weeks = []; //１週間の配列を準備 
+            
+            for($i = 0;$i <= 9; $i ++){
                
-                $totalTime = $user->reports()->whereDate('date', '>=', $monday)
-                                             ->whereDate('date', '<=', $sunday)
-                                             ->get(); //   １件につき月曜から日曜のreport取得
-              
+                $from = $baseFrom->copy()->subWeeks($i);//for各月曜日 01-27,
+                $to = $from->copy()->addDay(6);//for各日曜日 02-02,
+               
+                $monday = $from->copy();//各月曜日
+                $total_Time = $user->reports()->where('date', '>=', $from)
+                                              ->where('date', '<=', $to)->orderBy('date')
+                                              ->get();
+                //１週間に格納
                 $weeks[] = [
-                    'date' => $date,
-                    'sum' => $totalTime->sum('time'),
+                    'monday' => $monday, //各月曜日
+                    'sum' => $total_Time->sum('time'), //各週worktimeの集計
                 ];
             }
-                
-            // $sum = $reports->sum('time'); //時間の集計
             
-           return view('reports.every_week', [
-                'reports' => $reports,
-                
-                'weeks' => $weeks,
-           ]);      
+            return view('reports.every_week', [
+                'reports' => $reports, //全report取得(日付降順)
+                'weeks' => $weeks, //各月曜日,各週worktimeの集計(表示のみ,中身は無し)
+                'n' => $n,
+           ]); 
+         
         }   
      return view('/');
     }
+
 }

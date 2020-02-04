@@ -2,6 +2,7 @@
 
 @section('content')
 
+@if (Auth::check())
 <div class="mt-5 mb-5 row justify-content-center">
     <div class="offset-col-3 col-sm-9">
         
@@ -78,6 +79,7 @@
         {!! Form::close() !!}
     </div>
 </div>
-
-    
+@else
+<h1>Welcome!!</h1>
+@endif    
 @endsection

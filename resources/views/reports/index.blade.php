@@ -12,7 +12,6 @@
     <div class="row">
         @if (count($reports) > 0)
           @foreach ($reports as $report)
-         
       <div class= "col-sm-6">
           <div class="card border-dark mb-3 mr-3">
             <a href="/reports/{{ $report->id }}">
@@ -27,7 +26,6 @@
                 </div>
           </div>
       </div>
-
       @endforeach
       @endif
     </div>
@@ -36,7 +34,6 @@
       <div class="col-sm-6">
        <!--左に余白-->
       </div>
-      
       <div class="col-6">
         <div class="card border-dark mb-3 mr-3">
           <div class="card-header">total work time of this week</div>
@@ -50,46 +47,24 @@
     
 </div>
 
- 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>last_monday</th>
-        <th>today</th>
-        <th>total of worktime</th>
-        <th>minute</th>
-        <th>this_monday</th>
-        <th>next_sunday</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ $last_monday }}</td>
-        <td>{{ $today }}</td>
-        <td>{{ floor($sum / 60) }}hour</td>
-        <td>{{ $sum % 60  }}minute</td>
-        <td>{{ $this_monday }}</td>
-        <td>{{ $next_sunday }}</td>
-      </tr>
-    </tbody>
-  </table>
-
         <nav aria-label="ページャー">
           <ul class="pagination justify-content-center">
             <li>
-              <a class="btn page-link rounded-pill" href="#">&larr; back</a>
-               <!--$reports->links('pagination::bootstrap-4') -->
+              <!--<a class="btn page-link rounded-pill" href="#">&larr; last week</a>-->
+              {!! link_to_route('reports.index', '&larr; last week', ['page' => $n + 1], ['class' => 'btn page-link rounded-pill']) !!} 
             </li>
+            @if($n > 1)
             <li class="mx-2">
-              <a class="btn page-link rounded-pill" href="#">this week</a>
-               <!--$reports->links('pagination::bootstrap-4') -->
+              <!--<a class="btn page-link rounded-pill" href="#">this week</a>-->
+              {!! link_to_route('reports.index', 'this week', ['page' => 1], ['class' => 'btn page-link rounded-pill']) !!}
             </li>
+             
             <li>
-              <a class="btn page-link rounded-pill" href="#">next &rarr;</a>
-               <!--$reports->links('pagination::bootstrap-4') -->
+              <!--<a class="btn page-link rounded-pill" href="#">next week &rarr;</a>-->
+              {!! link_to_route('reports.index', 'next week &rarr;', ['page' => $n - 1], ['class' => 'btn page-link rounded-pill']) !!}
             </li>
+            @endif
           </ul>
         </nav>
-  
 
 @endsection

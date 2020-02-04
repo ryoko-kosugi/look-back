@@ -20,9 +20,12 @@
       
       
       <div class="row">
-        <div class="offset-sm-7 col-sm-5" >
+        <div class="offset-sm-8 col-sm-4" >
+          <!--Returnボタンはページごとの挙動に合わなかったので削除-->
           <!--<a class="btn btn-lg btn btn-outline-secondary" href="#" role="button">Return</a>-->
-          {!! link_to_route('reports.index', 'Return' , [], ['class' => 'btn btn-lg btn btn-outline-secondary']) !!}
+          <!--{!! link_to_route('reports.index', 'Return' , [], ['class' => 'btn btn-lg btn btn-outline-secondary']) !!}-->
+          
+          <!--編集ボタン-->
           <!--<a class="btn btn-lg btn-outline-info" href="#" role="button">Edit</a>    -->
           {!! link_to_route('reports.edit', 'edit', ['id' => $report->id], ['class' => 'btn btn-lg btn-outline-info']) !!}
         </div>
