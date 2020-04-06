@@ -25,13 +25,7 @@ Route::get('logout', 'Auth\LoginController@logout')->name('logout.get');
 
 // ユーザー機能
 Route::get('reports/every_week', 'ReportsController@every_week')->name('reports.every_week');
-// テスト
-// Route::get('reports/every_week1', 'ReportsController@every_week1')->name('reports.every_week1');
-// Route::get('reports/every_week2', 'ReportsController@every_week2')->name('reports.every_week2');
-// Route::get('reports/', function ($page) {
-//      Route::resource('reports', 'ReportsController@index');
-// })->where('page', '[1]+');
-// Route::any('reports/', 'ReportsController@every_week');
+
 
 // このグループに書かれたルーティングは必ずログイン認証を確認させます。
 Route::group(['middleware' => 'auth'], function (){

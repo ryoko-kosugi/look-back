@@ -63,6 +63,7 @@ class ReportsController extends Controller
                 'sum' => $sum,
                 'n' => $n,
             ]);
+           
        }
        return view('/');
     }
@@ -120,10 +121,16 @@ class ReportsController extends Controller
         
         $report = Report::find($id);
         
+        // Returnボタンの遷移のために選択されたreport_idの月曜日を取得する
+        $day = $report->date;//日付を取り出す
+        $dt = Carbon::parse($day)->startOfWeek();//その週の月曜日を取得         
+        $monday = $dt->toFormattedDateString();//Carbonnの時間を取り除いている
+     
         if (\Auth::id() === $report->user_id) {
            
             return view('reports.show', [
                     'report' => $report,
+                    'monday' => $monday,
             ]);
         }
         return redirect('/');
@@ -175,7 +182,7 @@ class ReportsController extends Controller
             $report->save();
             
         }
-        return redirect('/');
+        return redirect('reports/'.$report->id);
     }
 
     /**
@@ -188,12 +195,16 @@ class ReportsController extends Controller
     {
         $report = Report::find($id);
         
+        // リダイレクト遷移のために月曜日を求める
+        $day = $report->date;//いつの記録か日付フィールドを保存しておく
+        $carbon_monday = Carbon::parse($day)->startOfWeek();//月曜日を取得
+        $monday = $carbon_monday->toFormattedDateString();//Carbonの時間を取り除く
+        
         if (\Auth::id() === $report->user_id) {
-            
             $report->delete();
-            
         }
-        return redirect('/');
+        // querystringに渡すときはurlencodeつけると安全（非英数文字がエンコードされる）
+        return redirect('/reports?date=' . urlencode($monday));
     }
  
     // １０週間毎の表示ページ
@@ -241,9 +252,9 @@ class ReportsController extends Controller
                     'sum' => $total_Time->sum('time'), //各週worktimeの集計
                 ];
             }
+          
             
             return view('reports.every_week', [
-                'reports' => $reports, //全report取得(日付降順)
                 'weeks' => $weeks, //各月曜日,各週worktimeの集計(表示のみ,中身は無し)
                 'n' => $n,
            ]); 
