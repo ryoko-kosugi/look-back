@@ -99,7 +99,7 @@
 <div class="container">
   <div class="d-flex justify-content-center">
       <h1></h1>
-      <p>Let's<strong> look back <br></strong> every day</p>
+      <p>Let's<strong> look <br> back <br></strong> every day</p>
   </div> 
 </div>   
 @endif        
