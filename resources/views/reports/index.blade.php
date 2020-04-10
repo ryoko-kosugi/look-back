@@ -19,18 +19,19 @@
                 <h2>{{ \Carbon\Carbon::createFromFormat('Y-m-d', $report->date)->formatLocalized('%Y/%m/%d(%a)') }}</h2>
                 <h3>{{ floor($report->time / 60) . " h "}}{{ floor($report->time % 60) . " min " }}</h3>
               </div>
-          
-              <div class="card-body text-dark">
-                @if($report->title)
-                <div class="important">
-                  <h4 class="card-title">{!! nl2br(e($report->title)) !!}</h4>
+              <div class="report-index">
+                <div class="card-body text-dark">
+                  @if($report->title)
+                  <div class="important">
+                    <h4 class="card-title">{!! nl2br(e($report->title)) !!}</h4>
+                  </div>
+                  @endif
+                  @if(mb_strwidth($report -> content) >= 300)
+                  <p class="card-text">{!! mb_substr( nl2br(e($report->content)), 0, 300) !!}<div id="continue"> ▶&ensp;▶</div>︎</p>
+                  @else
+                  <p class="card-text">{!! nl2br(e($report->content)) !!}</p>
+                  @endif
                 </div>
-                @endif
-                @if(mb_strwidth($report -> content) >= 300)
-                <p class="card-text">{!! mb_substr( nl2br(e($report->content)), 0, 300) !!}<div id="continue"> ▶&ensp;▶</div>︎</p>
-                @else
-                <p class="card-text">{!! nl2br(e($report->content)) !!}</p>
-                @endif
               </div>
           </a>
         </div>

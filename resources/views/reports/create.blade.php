@@ -96,9 +96,11 @@
 </div>
 
 @else
-<div class="text-center mt-3 mb-5">
-  <h1>Welcome!!</h1>
-</div>
-    
+<div class="container">
+  <div class="d-flex justify-content-center">
+      <h1></h1>
+      <p>Let's<strong> look back <br></strong> every day</p>
+  </div> 
+</div>   
 @endif        
 @endsection
